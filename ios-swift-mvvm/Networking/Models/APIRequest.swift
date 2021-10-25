@@ -10,7 +10,9 @@ import Foundation
 protocol APIRequest {
     var url: URL { get }
     var path: ApiPath { get }
+    var body: [String:Any]? { get }
     var additionalPathParams: [String]? { get }
     var method: HTTPMethod { get }
+    var headers: [String:String]? { get }
     var queryTimes: [URLQueryItem]? { get }
 }

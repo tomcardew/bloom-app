@@ -13,10 +13,7 @@ struct NetworkRequest {
     
     init(apiRequest: APIRequest) {
         var urlComponents = URLComponents(string: apiRequest.url.description)
-        let additionalPathParams = apiRequest.additionalPathParams?.reduce("", { x, y in
-            return "\(x!)/\(y)"
-        })
-        urlComponents?.path = apiRequest.path.rawValue + (additionalPathParams ?? "")
+        urlComponents?.path = apiRequest.path.rawValue
         urlComponents?.queryItems = apiRequest.queryTimes
         
         guard let fullURL = urlComponents?.url else {
@@ -27,5 +24,17 @@ struct NetworkRequest {
         
         self.request = URLRequest(url: fullURL)
         self.request.httpMethod = apiRequest.method.rawValue
+        
+        if let body = apiRequest.body {
+            let jsonData = try? JSONSerialization.data(withJSONObject: body)
+            self.request.httpBody = jsonData
+        }
+        
+        if let headers = apiRequest.headers {
+            for header in headers {
+                self.request.setValue(header.value, forHTTPHeaderField: header.key)
+            }
+        }
+        
     }
 }

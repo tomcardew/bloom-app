@@ -31,7 +31,7 @@ struct NetworkRequester {
                 let mappedResource = try mapResponse(data: dataResponse, dataType: T.self)
                 completion(.success(mappedResource))
             } catch {
-                print(error.localizedDescription)
+                print(error)
                 completion(.failure(error))
             }
             
