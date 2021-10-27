@@ -15,12 +15,29 @@ class MainViewController: UIViewController {
     private let viewModel: MainViewModel
     
     private lazy var sideSide: UIViewController = {
-        let view = UIViewController()
-        view.view.backgroundColor = .red
+        let view = MenuViewController()
         return view
     }()
     
     private var sideMenu: SideMenuNavigationController? = nil
+    
+    private lazy var label: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .poppins(ofSize: 66, weight: .bold)
+        label.text = "LA DECISIÓN ES TUYA"
+        label.numberOfLines = 2
+        label.textColor = .white
+        label.textAlignment = .center
+        label.setShadow(color: UIColor.black.cgColor, size: CGSize(width: 0, height: 4), opacity: 0.1, radius: 10)
+        return label
+    }()
+    
+    private lazy var credits: Credits = {
+        let label = Credits()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     
     private lazy var header: HeaderView = {
         let header = HeaderView()
@@ -36,26 +53,7 @@ class MainViewController: UIViewController {
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFill
         imageView.layer.opacity = 1
-        imageView.layer.cornerRadius = 20
         return imageView
-    }()
-    
-    //    private lazy var bgImage: UIImageView = {
-    //        let imageView = UIImageView()
-    //        imageView.translatesAutoresizingMaskIntoConstraints = false
-    //        imageView.image = UIImage(named: "MainBgScreen")
-    //        imageView.contentMode = .scaleAspectFill
-    //        return imageView
-    //    }()
-    
-    let motionManager = CMMotionManager()
-    
-    private lazy var featuredButton: BigButton = {
-        let btn = BigButton()
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.title = "Ver horarios"
-        btn.delegate = self
-        return btn
     }()
     
     // MARK: - Initializer
@@ -63,6 +61,10 @@ class MainViewController: UIViewController {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         sideMenu = SideMenuNavigationController(rootViewController: sideSide)
+        sideMenu!.leftSide = true
+        sideMenu!.presentationStyle = .menuSlideIn
+        sideMenu!.presentingViewControllerUseSnapshot = true
+        sideMenu!.menuWidth = UIScreen.main.bounds.width
     }
     
     required init?(coder: NSCoder) {
@@ -82,6 +84,7 @@ class MainViewController: UIViewController {
         addLayout()
         bindViewModel()
         SideMenuManager.default.leftMenuNavigationController = sideMenu
+        
         viewModel.getImages()
     }
     
@@ -94,33 +97,41 @@ class MainViewController: UIViewController {
     private func configureView() {
         self.view.addSubview(backdropImage)
         self.view.addSubview(header)
-        self.view.addSubview(featuredButton)
+        self.view.addSubview(label)
+        self.view.addSubview(credits)
     }
     
     private func addLayout() {
         NSLayoutConstraint.activate([
-            backdropImage.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            backdropImage.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            backdropImage.widthAnchor.constraint(equalToConstant: view.frame.width - 60 ),
-            backdropImage.heightAnchor.constraint(equalToConstant: view.frame.width - 60 )
-        ])
-        NSLayoutConstraint.activate([
             header.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             header.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            header.heightAnchor.constraint(equalToConstant: 70),
+            header.heightAnchor.constraint(equalToConstant: 120),
             header.widthAnchor.constraint(equalTo: self.view.widthAnchor)
         ])
         NSLayoutConstraint.activate([
-            featuredButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-            featuredButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
-            featuredButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-            featuredButton.heightAnchor.constraint(equalToConstant: 50)
+            backdropImage.topAnchor.constraint(equalTo: header.bottomAnchor),
+            backdropImage.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backdropImage.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backdropImage.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            label.widthAnchor.constraint(equalTo: view.widthAnchor, constant: 100)
+        ])
+        NSLayoutConstraint.activate([
+            credits.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            credits.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -40),
+            credits.widthAnchor.constraint(equalTo: view.widthAnchor)
         ])
     }
     
     private func bindViewModel() {
         viewModel.updateStatusHandler = self.updateState(_:)
         viewModel.updateCurrentImage = self.updateCurrentImage(_:)
+        credits.handlePressed = {
+            self.openCredits()
+        }
     }
     
     // MARK: - Bindings
@@ -144,6 +155,10 @@ class MainViewController: UIViewController {
             options.alwaysTransition = true
             Nuke.loadImage(with: image, options: options, into: self.backdropImage)
         }
+    }
+    
+    private func openCredits() {
+        print("CRedits!")
     }
     
 }

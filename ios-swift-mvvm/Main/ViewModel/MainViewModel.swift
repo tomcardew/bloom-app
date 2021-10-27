@@ -94,7 +94,6 @@ final class MainViewModel {
             } else {
                 self.currentIndex += 1
             }
-            print(url)
             self.currentImageUrl = URL(string: url)!
         }
     }

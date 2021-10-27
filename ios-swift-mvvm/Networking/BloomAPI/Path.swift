@@ -10,4 +10,5 @@ import Foundation
 enum ApiPath: String {
     case schedules = "/locations/room/1/schedules"
     case images = "/images"
+    case version = "/versions/1"
 }

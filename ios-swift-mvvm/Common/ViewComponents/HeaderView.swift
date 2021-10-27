@@ -68,8 +68,8 @@ class HeaderView: UIView {
     
     private func setupLayout() {
         NSLayoutConstraint.activate([
-            logoImage.topAnchor.constraint(equalTo: self.topAnchor, constant: 10),
-            logoImage.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10),
+            logoImage.topAnchor.constraint(equalTo: self.topAnchor, constant: 30),
+            logoImage.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -30),
             logoImage.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 0),
             logoImage.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0)
         ])
@@ -77,13 +77,13 @@ class HeaderView: UIView {
             menuButton.widthAnchor.constraint(equalToConstant: 30),
             menuButton.heightAnchor.constraint(equalToConstant: 30),
             menuButton.centerYAnchor.constraint(equalTo: logoImage.centerYAnchor),
-            menuButton.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 20)
+            menuButton.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 40)
         ])
         NSLayoutConstraint.activate([
             userButton.widthAnchor.constraint(equalToConstant: 30),
             userButton.heightAnchor.constraint(equalToConstant: 30),
             userButton.centerYAnchor.constraint(equalTo: logoImage.centerYAnchor),
-            userButton.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -20)
+            userButton.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -40)
         ])
     }
     
