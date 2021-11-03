@@ -7,10 +7,15 @@
 
 import UIKit
 
+protocol MenuDelegate: AnyObject {
+    func didPressedMenu(vc: UIViewController) -> Void
+}
+
 class MenuViewController: UIViewController {
     
     private let viewModel: MenuViewModel
-
+    var delegate: MenuDelegate?
+    
     private lazy var closeButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -24,6 +29,7 @@ class MenuViewController: UIViewController {
         label.font = .poppins(ofSize: 32, weight: .bold)
         label.textColor = .bloom_pink
         label.text = "Menú"
+        label.setDynamic()
         return label
     }()
     
@@ -46,6 +52,19 @@ class MenuViewController: UIViewController {
         return stack
     }()
     
+    private lazy var collectionView: UICollectionView = {
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .clear
+        collectionView.register(MenuItemCell.self, forCellWithReuseIdentifier: MenuItemCell.identifier)
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.alwaysBounceVertical = true
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            layout.scrollDirection = .vertical
+        }
+        return collectionView
+    }()
+    
     // MARK: - Initializer
     init(viewModel: MenuViewModel = .init()) {
         self.viewModel = viewModel
@@ -60,6 +79,8 @@ class MenuViewController: UIViewController {
     override func loadView() {
         super.loadView()
         self.view.backgroundColor = .white
+        collectionView.delegate = self
+        collectionView.dataSource = self
     }
     
     override func viewDidLoad() {
@@ -68,7 +89,7 @@ class MenuViewController: UIViewController {
         addLayout()
         bindViewModel()
         configureActions()
-        
+        self.navigationItem.setHidesBackButton(true, animated: false)
         self.viewModel.getOptions()
     }
     
@@ -77,7 +98,7 @@ class MenuViewController: UIViewController {
         self.view.addSubview(closeButton)
         self.view.addSubview(titleLabel)
         self.view.addSubview(versionLabel)
-        self.view.addSubview(stackView)
+        self.view.addSubview(collectionView)
     }
     
     private func addLayout() {
@@ -96,9 +117,10 @@ class MenuViewController: UIViewController {
             versionLabel.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -40)
         ])
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 40),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40)
+            collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 40),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
+            collectionView.bottomAnchor.constraint(equalTo: versionLabel.topAnchor, constant: 0)
         ])
     }
     
@@ -116,8 +138,8 @@ class MenuViewController: UIViewController {
             switch state {
             case .loadedVersion(let version):
                 self.versionLabel.text = version
-            case .loadedOptions(let options):
-                self.loadOptions(with: options)
+            case .loadedOptions:
+                self.collectionView.reloadData()
                 self.viewModel.getVersion()
             default:
                 print("Default")
@@ -125,18 +147,40 @@ class MenuViewController: UIViewController {
         }
     }
     
-    private func loadOptions(with options: [String:UIViewController?]) {
-        for option in options {
-            let label = UILabel()
-            label.font = .poppins(ofSize: 32, weight: .medium)
-            label.textColor = .black
-            label.text = option.key
-            self.stackView.addArrangedSubview(label)
-        }
-    }
-    
     @objc func closeSelf() {
         self.dismiss(animated: true, completion: nil)
     }
+    
+}
 
+extension MenuViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return self.viewModel.getOptionsCount()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MenuItemCell.identifier, for: indexPath) as? MenuItemCell else {
+            assertionFailure("Could not dequeue cell")
+            return UICollectionViewCell()
+        }
+        cell.configureWith(title: self.viewModel.getOptionLabel(at: indexPath.row))
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: self.collectionView.frame.size.width, height: 68)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let vc = viewModel.getViewController(at: indexPath.row)
+        if let vc = vc {
+            delegate?.didPressedMenu(vc: vc)
+        }
+    }
+    
 }

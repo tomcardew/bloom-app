@@ -9,6 +9,8 @@ import UIKit
 
 protocol HeaderDelegate: AnyObject {
     func didPressMenu() -> Void
+    func didPressUser() -> Void
+    func didPressHome() -> Void
 }
 
 class HeaderView: UIView {
@@ -68,10 +70,10 @@ class HeaderView: UIView {
     
     private func setupLayout() {
         NSLayoutConstraint.activate([
-            logoImage.topAnchor.constraint(equalTo: self.topAnchor, constant: 30),
-            logoImage.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -30),
-            logoImage.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 0),
-            logoImage.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0)
+            logoImage.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            logoImage.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            logoImage.heightAnchor.constraint(greaterThanOrEqualToConstant: 60),
+            logoImage.widthAnchor.constraint(equalTo: self.widthAnchor)
         ])
         NSLayoutConstraint.activate([
             menuButton.widthAnchor.constraint(equalToConstant: 30),
@@ -89,10 +91,23 @@ class HeaderView: UIView {
     
     private func setupActions() {
         menuButton.addTarget(self, action: #selector(menuClicked), for: .touchUpInside)
+        userButton.addTarget(self, action: #selector(userClicked), for: .touchUpInside)
+        
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(homeClicked))
+        logoImage.isUserInteractionEnabled = true
+        logoImage.addGestureRecognizer(gesture)
     }
     
     @objc func menuClicked() {
         self.delegate?.didPressMenu()
+    }
+    
+    @objc func userClicked() {
+        self.delegate?.didPressUser()
+    }
+    
+    @objc func homeClicked() {
+        self.delegate?.didPressHome()
     }
 
 }

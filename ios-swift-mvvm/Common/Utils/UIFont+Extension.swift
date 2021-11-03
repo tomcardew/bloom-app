@@ -9,11 +9,18 @@ import UIKit
 
 extension UIFont {
     
+    enum FontSize {
+        case big
+        case medium
+        case small
+    }
+    
     enum WeightSize {
         case bold
         case medium
         case regular
         case light
+        case semibold
     }
     
     private static func customFont(name: String, size: CGFloat) -> UIFont {
@@ -35,6 +42,8 @@ extension UIFont {
             return customFont(name: "Poppins-Regular", size: size)
         case .light:
             return customFont(name: "Poppins-Light", size: size)
+        case .semibold:
+            return customFont(name: "Poppins-SemiBold", size: size)
         }
     }
     

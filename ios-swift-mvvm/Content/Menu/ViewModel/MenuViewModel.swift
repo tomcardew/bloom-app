@@ -15,7 +15,7 @@ final class MenuViewModel {
         case initial
         case loading
         case loadedVersion(String)
-        case loadedOptions([String:UIViewController?])
+        case loadedOptions
         case failed(Error)
     }
     
@@ -32,10 +32,15 @@ final class MenuViewModel {
         
     }
     
+    struct OptionModel {
+        let name: String
+        let vc: UIViewController?
+    }
+    
     /// Properties
     private let service: MenuService
     private var version: VersionDisplayModel?
-    private let options: [String: UIViewController?]
+    private var options: [OptionModel]
     
     var updateStatusHandler: ((Status) -> Void)?
     var currentState: Status = .initial {
@@ -47,7 +52,7 @@ final class MenuViewModel {
     /// Initializer
     init(service: MenuService = .init()) {
         self.service = service
-        self.options = ["Horarios": UIViewController(), "Paquetes": UIViewController(), "Instructores": UIViewController(), "Contacto": UIViewController()]
+        self.options = []
     }
     
     /// Public methods
@@ -74,7 +79,27 @@ final class MenuViewModel {
     }
     
     func getOptions() {
-        self.currentState = .loadedOptions(self.options)
+        switch currentState {
+        case .loading:
+            return
+        default:
+            break
+        }
+        
+        self.options = [OptionModel(name: "Horarios", vc: nil), OptionModel(name: "Paquetes", vc: nil), OptionModel(name: "Instructores", vc: nil) , OptionModel(name: "Contacto", vc: ContactViewController())]
+        currentState = .loadedOptions
+    }
+    
+    func getOptionLabel(at index: Int) -> String {
+        return self.options[index].name
+    }
+    
+    func getViewController(at index: Int) -> UIViewController? {
+        return self.options[index].vc
+    }
+    
+    func getOptionsCount() -> Int {
+        return self.options.count
     }
     
 }

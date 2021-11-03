@@ -10,16 +10,9 @@ import SideMenu
 import Nuke
 import CoreMotion
 
-class MainViewController: UIViewController {
+class MainViewController: BaseViewController {
     
     private let viewModel: MainViewModel
-    
-    private lazy var sideSide: UIViewController = {
-        let view = MenuViewController()
-        return view
-    }()
-    
-    private var sideMenu: SideMenuNavigationController? = nil
     
     private lazy var label: UILabel = {
         let label = UILabel()
@@ -29,6 +22,7 @@ class MainViewController: UIViewController {
         label.numberOfLines = 2
         label.textColor = .white
         label.textAlignment = .center
+        label.setDynamic()
         label.setShadow(color: UIColor.black.cgColor, size: CGSize(width: 0, height: 4), opacity: 0.1, radius: 10)
         return label
     }()
@@ -37,13 +31,6 @@ class MainViewController: UIViewController {
         let label = Credits()
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
-    }()
-    
-    private lazy var header: HeaderView = {
-        let header = HeaderView()
-        header.translatesAutoresizingMaskIntoConstraints = false
-        header.delegate = self
-        return header
     }()
     
     private lazy var backdropImage: UIImageView = {
@@ -59,12 +46,7 @@ class MainViewController: UIViewController {
     // MARK: - Initializer
     init(viewModel: MainViewModel = .init()) {
         self.viewModel = viewModel
-        super.init(nibName: nil, bundle: nil)
-        sideMenu = SideMenuNavigationController(rootViewController: sideSide)
-        sideMenu!.leftSide = true
-        sideMenu!.presentationStyle = .menuSlideIn
-        sideMenu!.presentingViewControllerUseSnapshot = true
-        sideMenu!.menuWidth = UIScreen.main.bounds.width
+        super.init()
     }
     
     required init?(coder: NSCoder) {
@@ -74,7 +56,6 @@ class MainViewController: UIViewController {
     // MARK: - View Controller Life Cycle
     override func loadView() {
         super.loadView()
-        navigationController?.navigationBar.isHidden = true
         view.backgroundColor = .white
     }
     
@@ -83,8 +64,6 @@ class MainViewController: UIViewController {
         configureView()
         addLayout()
         bindViewModel()
-        SideMenuManager.default.leftMenuNavigationController = sideMenu
-        
         viewModel.getImages()
     }
     
@@ -96,20 +75,13 @@ class MainViewController: UIViewController {
     // MARK: - Configurations
     private func configureView() {
         self.view.addSubview(backdropImage)
-        self.view.addSubview(header)
         self.view.addSubview(label)
         self.view.addSubview(credits)
     }
     
     private func addLayout() {
         NSLayoutConstraint.activate([
-            header.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            header.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            header.heightAnchor.constraint(equalToConstant: 120),
-            header.widthAnchor.constraint(equalTo: self.view.widthAnchor)
-        ])
-        NSLayoutConstraint.activate([
-            backdropImage.topAnchor.constraint(equalTo: header.bottomAnchor),
+            backdropImage.topAnchor.constraint(equalTo: view.topAnchor, constant: getHeaderOffset()),
             backdropImage.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             backdropImage.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backdropImage.trailingAnchor.constraint(equalTo: view.trailingAnchor)
@@ -117,7 +89,7 @@ class MainViewController: UIViewController {
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            label.widthAnchor.constraint(equalTo: view.widthAnchor, constant: 100)
+            label.widthAnchor.constraint(equalTo: view.widthAnchor, constant: 20)
         ])
         NSLayoutConstraint.activate([
             credits.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -158,7 +130,7 @@ class MainViewController: UIViewController {
     }
     
     private func openCredits() {
-        print("CRedits!")
+        self.navigationController?.pushViewController(ContactViewController(), animated: true)
     }
     
 }
@@ -167,14 +139,6 @@ extension MainViewController {
     
     func updateBackdropImage(_ image: UIImage) {
         
-    }
-    
-}
-
-extension MainViewController: HeaderDelegate {
-    
-    func didPressMenu() {
-        present(sideMenu!, animated: true, completion: nil)
     }
     
 }

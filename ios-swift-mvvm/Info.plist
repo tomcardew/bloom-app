@@ -4,6 +4,7 @@
 <dict>
 	<key>UIAppFonts</key>
 	<array>
+		<string>fonts/Poppins-SemiBold.ttf</string>
 		<string>fonts/Poppins-Light.ttf</string>
 		<string>fonts/Poppins-Regular.ttf</string>
 		<string>fonts/Poppins-Medium.ttf</string>
@@ -27,6 +28,6 @@
 		</dict>
 	</dict>
 	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleDarkContent</string>
+	<string>UIStatusBarStyleDefault</string>
 </dict>
 </plist>
