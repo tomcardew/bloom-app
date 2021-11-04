@@ -135,7 +135,13 @@ extension BaseViewController: HeaderDelegate {
     
     func didPressUser() {
         self.navigationController?.popViewController(animated: true)
-        self.navigationController?.pushViewController(ProfileViewController(), animated: true)
+        if KeyManager.get(key: .Token) != nil {
+            self.navigationController?.pushViewController(ProfileViewController(), animated: true)
+        } else {
+            let view = LoginViewController()
+            view.modalPresentationStyle = .pageSheet
+            self.present(view, animated: true, completion: nil)
+        }
     }
     
     func didPressHome() {

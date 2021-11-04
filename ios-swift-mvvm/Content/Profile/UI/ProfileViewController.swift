@@ -172,7 +172,6 @@ class ProfileViewController: BaseViewController {
         // CGFloat((120 * items.count) + (20 * (items.count - 1)) + summaryLabel.bounds.size.height + 40)
         let itemSize = CGFloat((120 * itemCount) + (20 * (itemCount - 1)))
         let summarySize = CGFloat(82 + 80)
-        print(CGFloat(itemSize + summarySize))
         return CGFloat(itemSize + summarySize)
     }
     

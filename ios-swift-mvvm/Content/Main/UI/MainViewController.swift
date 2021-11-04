@@ -134,19 +134,3 @@ class MainViewController: BaseViewController {
     }
     
 }
-
-extension MainViewController {
-    
-    func updateBackdropImage(_ image: UIImage) {
-        
-    }
-    
-}
-
-extension MainViewController: BigButtonDelegate {
-    
-    func didPressButton() {
-        print("Pressed button")
-    }
-    
-}

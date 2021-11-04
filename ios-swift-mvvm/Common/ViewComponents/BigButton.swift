@@ -21,11 +21,17 @@ class BigButton: UIView {
         }
     }
     
+    var isDark: Bool = false {
+        didSet {
+            setDark(isDark: isDark)
+        }
+    }
+    
     // MARK: Properties
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.font = .poppins(ofSize: 18, weight: .bold)
         label.textColor = DesignConstants.textColor
         label.textAlignment = .center
         return label
@@ -74,6 +80,16 @@ class BigButton: UIView {
         self.addGestureRecognizer(gesture)
     }
     
+    private func setDark(isDark: Bool) {
+        if isDark {
+            self.backgroundColor = DesignConstants.bgColorDark
+            self.titleLabel.textColor = DesignConstants.textColorDark
+        } else {
+            self.backgroundColor = DesignConstants.bgColor
+            self.titleLabel.textColor = DesignConstants.textColor
+        }
+    }
+    
     @objc func pressed() {
         self.delegate?.didPressButton()
     }
@@ -82,7 +98,9 @@ class BigButton: UIView {
 
 private extension BigButton {
     private enum DesignConstants {
-        static let textColor: UIColor = .white
+        static let textColor: UIColor = .black
         static let bgColor: UIColor = .bloom_pink
+        static let textColorDark: UIColor = .white
+        static let bgColorDark: UIColor = .black
     }
 }
