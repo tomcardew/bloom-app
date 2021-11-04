@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Nuke
 
 protocol HeaderDelegate: AnyObject {
     func didPressMenu() -> Void
@@ -16,6 +17,12 @@ protocol HeaderDelegate: AnyObject {
 class HeaderView: UIView {
     
     var delegate: HeaderDelegate?
+    
+    var profilePictureUrl: String? {
+        didSet {
+            setProfileImage()
+        }
+    }
     
     // MARK: Properties
     private lazy var logoImage: UIImageView = {
@@ -39,6 +46,16 @@ class HeaderView: UIView {
         button.setImage(UIImage(named: "User"), for: .normal)
         return button
     }()
+    
+    private lazy var userImageButton: UIImageView = {
+        let image = UIImageView()
+        image.translatesAutoresizingMaskIntoConstraints = false
+        image.layer.cornerRadius = 15
+        image.clipsToBounds = true
+        image.backgroundColor = .red
+        image.isHidden = true
+        return image
+    }()
 
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -58,14 +75,16 @@ class HeaderView: UIView {
     }
     
     // MARK: - Configuration
-    public func configure(with model: ScheduleModel) {
-        
+    public func configure(with user: User) {
+        self.profilePictureUrl = user.pictureUrl
+        DataManager.shared.attach(self)
     }
     
     private func setupViews() {
         self.addSubview(logoImage)
         self.addSubview(menuButton)
         self.addSubview(userButton)
+        self.addSubview(userImageButton)
     }
     
     private func setupLayout() {
@@ -87,15 +106,19 @@ class HeaderView: UIView {
             userButton.centerYAnchor.constraint(equalTo: logoImage.centerYAnchor),
             userButton.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -40)
         ])
+        NSLayoutConstraint.activate([
+            userImageButton.widthAnchor.constraint(equalToConstant: 30),
+            userImageButton.heightAnchor.constraint(equalToConstant: 30),
+            userImageButton.centerYAnchor.constraint(equalTo: logoImage.centerYAnchor),
+            userImageButton.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -40)
+        ])
     }
     
     private func setupActions() {
         menuButton.addTarget(self, action: #selector(menuClicked), for: .touchUpInside)
         userButton.addTarget(self, action: #selector(userClicked), for: .touchUpInside)
-        
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(homeClicked))
-        logoImage.isUserInteractionEnabled = true
-        logoImage.addGestureRecognizer(gesture)
+        userImageButton.onClick(target: self, selector: #selector(userClicked))
+        logoImage.onClick(target: self, selector: #selector(homeClicked))
     }
     
     @objc func menuClicked() {
@@ -109,6 +132,19 @@ class HeaderView: UIView {
     @objc func homeClicked() {
         self.delegate?.didPressHome()
     }
+    
+    private func setProfileImage() {
+        DispatchQueue.main.async {
+            self.userButton.isHidden = true
+            self.userImageButton.isHidden = false
+            if let pic = self.profilePictureUrl, let url = URL(string: self.profilePictureUrl!.replacingOccurrences(of: "http://", with: "https://")) {
+                Nuke.loadImage(with: url, into: self.userImageButton)
+            } else {
+                self.userButton.isHidden = false
+                self.userImageButton.isHidden = true
+            }
+        }
+    }
 
 }
 
@@ -116,4 +152,13 @@ private extension HeaderView {
     private enum DesignConstants {
         
     }
+}
+
+extension HeaderView: Observer {
+    
+    func update(subscriber: Subscriber) {
+        let user: User = try! DataManager.shared.get(key: .User)
+        self.profilePictureUrl = user.pictureUrl
+    }
+
 }

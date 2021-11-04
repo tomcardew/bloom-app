@@ -58,13 +58,14 @@ class ProfileViewController: BaseViewController {
         return stack
     }()
     
-//    private lazy var menu: ProfileMenuItem = {
-//        let menu = ProfileMenuItem()
-//        menu.translatesAutoresizingMaskIntoConstraints = false
-//        menu.clipsToBounds = true
-//        menu.layer.cornerRadius = 10
-//        return menu
-//    }()
+    private lazy var logoutButton: BigButton = {
+        let btn = BigButton()
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.title = "Cerrar sesión"
+        btn.bgColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.1)
+        btn.textColor = .black
+        return btn
+    }()
     
     override init() {
         super.init()
@@ -95,6 +96,8 @@ class ProfileViewController: BaseViewController {
         self.scrollView.addSubview(contentView)
         self.contentView.addSubview(summaryLabel)
         self.contentView.addSubview(stackView)
+        
+        DataManager.shared.set(object: User(id: "", name: "", lastname: nil, email: "", pictureUrl: "http://bloom-api.com/files/users/db33b9c0-0cf6-462b-82af-e200116826f5142852931_5305882439452219_3641811579963259765_n.jpg", isAdmin: false, isLeader: false), key: .User)
     }
     
     private func addLayout() {
@@ -130,10 +133,11 @@ class ProfileViewController: BaseViewController {
     }
     
     private func configureActions() {
-        
+        logoutButton.onClick(target: self, selector: #selector(logout))
     }
     
     private func setupMenuItems() {
+        let user: User = try! DataManager.shared.get(key: .User)
         let items: [ProfileItem] = [
             ProfileItem(title: "Mis clases", view: UIImage(named: "MisClases")!),
             ProfileItem(title: "Mi grupo", view: UIImage(named: "MiGrupo")!),
@@ -146,13 +150,21 @@ class ProfileViewController: BaseViewController {
             menu.clipsToBounds = true
             menu.layer.cornerRadius = 10
             menu.configure(text: item.title, image: item.view)
-            self.stackView.addArrangedSubview(menu)
-            NSLayoutConstraint.activate([
-                menu.heightAnchor.constraint(equalToConstant: 120),
-                menu.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
-                menu.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
-            ])
+            if (item.title != "Mi grupo" || (item.title == "Mi grupo" && user.isLeader)) {
+                self.stackView.addArrangedSubview(menu)
+                NSLayoutConstraint.activate([
+                    menu.heightAnchor.constraint(equalToConstant: 120),
+                    menu.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+                    menu.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
+                ])
+            }
         }
+        self.stackView.addArrangedSubview(logoutButton)
+        NSLayoutConstraint.activate([
+            logoutButton.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+            logoutButton.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
+            logoutButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
         NSLayoutConstraint.activate([
             contentView.heightAnchor.constraint(equalToConstant: getScrollSize(itemCount: items.count))
         ])
@@ -171,8 +183,15 @@ class ProfileViewController: BaseViewController {
     private func getScrollSize(itemCount: Int) -> CGFloat {
         // CGFloat((120 * items.count) + (20 * (items.count - 1)) + summaryLabel.bounds.size.height + 40)
         let itemSize = CGFloat((120 * itemCount) + (20 * (itemCount - 1)))
-        let summarySize = CGFloat(82 + 80)
+        let summarySize = CGFloat(82 + 80 + 60)
         return CGFloat(itemSize + summarySize)
     }
     
+    @objc func logout() {
+        KeyManager.set(key: .Token, value: "")
+        DataManager.shared.set(object: User(id: "", name: "", lastname: nil, email: "", pictureUrl: nil, isAdmin: false, isLeader: false), key: .User)
+        self.navigationController?.popToRootViewController(animated: true)
+    }
+    
 }
+

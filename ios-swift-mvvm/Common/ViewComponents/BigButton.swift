@@ -15,9 +15,32 @@ class BigButton: UIView {
 
     var delegate: BigButtonDelegate?
     
+    var icon: UIImage? {
+        didSet {
+            if let icon = icon {
+                self.iconImage.image = icon
+                self.iconImage.isHidden = false
+            } else {
+                self.iconImage.isHidden = true
+            }
+        }
+    }
+    
     var title: String = "" {
         didSet {
             self.titleLabel.text = title
+        }
+    }
+    
+    var textColor: UIColor = .black {
+        didSet {
+            self.titleLabel.textColor = textColor
+        }
+    }
+    
+    var bgColor: UIColor = DesignConstants.bgColor {
+        didSet {
+            self.backgroundColor = bgColor
         }
     }
     
@@ -35,6 +58,13 @@ class BigButton: UIView {
         label.textColor = DesignConstants.textColor
         label.textAlignment = .center
         return label
+    }()
+    
+    private lazy var iconImage: UIImageView = {
+        let image = UIImageView()
+        image.translatesAutoresizingMaskIntoConstraints = false
+        image.isHidden = true
+        return image
     }()
 
     // MARK: - Initialization
@@ -63,6 +93,7 @@ class BigButton: UIView {
         self.backgroundColor = DesignConstants.bgColor
         self.layer.cornerRadius = 10
         self.addSubview(titleLabel)
+        self.addSubview(iconImage)
     }
     
     private func setupLayout() {
@@ -71,6 +102,12 @@ class BigButton: UIView {
             titleLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             titleLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+        ])
+        NSLayoutConstraint.activate([
+            iconImage.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            iconImage.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            iconImage.heightAnchor.constraint(equalToConstant: 32),
+            iconImage.widthAnchor.constraint(equalToConstant: 32)
         ])
     }
     

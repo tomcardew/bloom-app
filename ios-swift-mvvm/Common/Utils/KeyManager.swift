@@ -17,8 +17,8 @@ class KeyManager {
         return UserDefaults.standard.object(forKey: key.rawValue) as! T
     }
     
-    public static func set(key: String, value: Any) {
-        UserDefaults.standard.set(value, forKey: key)
+    public static func set(key: Keys, value: Any) {
+        UserDefaults.standard.set(value, forKey: key.rawValue)
     }
     
 }

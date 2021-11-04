@@ -8,5 +8,6 @@ target 'ios-swift-mvvm' do
   # Pods for ios-swift-mvvm
   pod 'SideMenu'
   pod 'Nuke', :git => 'https://github.com/kean/Nuke', :branch => 'master'
+  pod 'Track', :git => 'https://github.com/maquannene/Track.git', :branch => 'master'
 
 end

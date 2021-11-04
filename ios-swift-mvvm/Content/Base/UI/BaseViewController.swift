@@ -76,6 +76,11 @@ class BaseViewController: UIViewController {
             sideMenuNavigationController!.menuWidth = UIScreen.main.bounds.width
             SideMenuManager.default.leftMenuNavigationController = self.sideMenuNavigationController
         }
+        if let token: String = KeyManager.get(key: .Token) {
+            let user: User = try! DataManager.shared.get(key: .User)
+            print("viedidload base view run")
+            self.header.configure(with: user)
+        }
         self.navigationItem.setHidesBackButton(true, animated: false)
         addLayout()
     }
@@ -135,11 +140,13 @@ extension BaseViewController: HeaderDelegate {
     
     func didPressUser() {
         self.navigationController?.popViewController(animated: true)
-        if KeyManager.get(key: .Token) != nil {
+        let token: String? = KeyManager.get(key: .Token)
+        if token != nil && !token!.isEmpty {
             self.navigationController?.pushViewController(ProfileViewController(), animated: true)
         } else {
             let view = LoginViewController()
-            view.modalPresentationStyle = .pageSheet
+            view.modalPresentationStyle = .overFullScreen
+            view.modalTransitionStyle = .crossDissolve
             self.present(view, animated: true, completion: nil)
         }
     }
