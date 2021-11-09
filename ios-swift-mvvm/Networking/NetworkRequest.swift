@@ -11,7 +11,7 @@ import UIKit
 struct NetworkRequest {
     var request: URLRequest
     
-    init(apiRequest: APIRequest) {
+    init(apiRequest: APIRequest, useAuthorization: Bool = true) {
         var urlComponents = URLComponents(string: apiRequest.url.description)
         urlComponents?.path = apiRequest.path.rawValue
         urlComponents?.queryItems = apiRequest.queryTimes
@@ -34,6 +34,11 @@ struct NetworkRequest {
             for header in headers {
                 self.request.setValue(header.value, forHTTPHeaderField: header.key)
             }
+        }
+        
+        let apikey: String? = KeyManager.get(key: .Token)
+        if apikey != nil && useAuthorization {
+            self.request.setValue(apikey, forHTTPHeaderField: "Authorization")
         }
         
     }

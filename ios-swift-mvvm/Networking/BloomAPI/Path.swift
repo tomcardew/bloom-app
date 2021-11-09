@@ -12,4 +12,5 @@ enum ApiPath: String {
     case images = "/images"
     case version = "/versions/1"
     case login = "/auth/login"
+    case me = "/me"
 }

@@ -8,27 +8,46 @@
 import Foundation
 import Track
 
-final class DataManager: Subscriber {
+final class DataManager {
     
     static let shared: DataManager = DataManager()
     
     enum DataKeys: String {
-        case User = "user"
-        case Other = "other"
+        case User
+        case Other
     }
     
-    public func set<T>(object: T, key: DataKeys) {
+    public func set<T>(object: T?, key: DataKeys) {
         if let obj = object as? Encodable {
             Cache.shareInstance.set(object: obj.toJSONString()! as NSCoding, forKey: key.rawValue)
-            self.notify()
+            notify(key: key)
+        } else {
+            Cache.shareInstance.removeObject(forKey: key.rawValue)
         }
     }
     
-    public func get<T: Decodable>(key: DataKeys) throws -> T {
-        let data = Cache.shareInstance.object(forKey: key.rawValue) as! String
-        return try JSONDecoder().decode(T.self, from: data.data(using: .utf8)!)
+    public func remove(key: DataKeys) {
+        Cache.shareInstance.removeObject(forKey: key.rawValue)
+        notify(key: key)
     }
-        
+    
+    public func get<T: Decodable>(key: DataKeys) throws -> T? {
+        let data = Cache.shareInstance.object(forKey: key.rawValue) as? String
+        if let data = data {
+            return try JSONDecoder().decode(T.self, from: data.data(using: .utf8)!)
+        }
+        return nil
+    }
+    
+    private func notify(key: DataKeys) {
+        switch key {
+        case .User :
+            InternalNotificationsManager.post(name: .CURRENT_USER_UPDATED, object: nil)
+        default:
+            break
+        }
+    }
+    
 }
 
 extension Encodable {
@@ -38,7 +57,7 @@ extension Encodable {
     }
     
     func toJSONString() -> String? {
-        try? String(data: self.toJSONData()!, encoding: .utf8)
+        String(data: self.toJSONData()!, encoding: .utf8)
     }
     
 }

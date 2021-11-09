@@ -10,6 +10,8 @@ import SideMenu
 
 class BaseViewController: UIViewController {
     
+    private let viewModel: BaseViewModel = BaseViewModel()
+    
     var headerOffset: CGFloat {
         get {
             switch UIDevice.current.userInterfaceIdiom {
@@ -44,7 +46,6 @@ class BaseViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        commonInit()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -65,6 +66,16 @@ class BaseViewController: UIViewController {
         super.loadView()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        setupObservers()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        removeObservers()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         if SideMenuManager.default.leftMenuNavigationController == nil {
@@ -76,13 +87,12 @@ class BaseViewController: UIViewController {
             sideMenuNavigationController!.menuWidth = UIScreen.main.bounds.width
             SideMenuManager.default.leftMenuNavigationController = self.sideMenuNavigationController
         }
-        if let token: String = KeyManager.get(key: .Token) {
-            let user: User = try! DataManager.shared.get(key: .User)
-            print("viedidload base view run")
-            self.header.configure(with: user)
-        }
         self.navigationItem.setHidesBackButton(true, animated: false)
         addLayout()
+//        let picture = viewModel.getProfilePicture()
+//        if let picture = picture {
+//            self.header.updateProfileImage(image: picture)
+//        }
     }
     
     // MARK: - Configurations
@@ -103,6 +113,20 @@ class BaseViewController: UIViewController {
             header.heightAnchor.constraint(equalToConstant: headerOffset),
             header.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width)
         ])
+    }
+    
+    private func setupObservers() {
+        InternalNotificationsManager.get(target: self, selector: #selector(updateCurrentUser), name: .CURRENT_USER_UPDATED, object: nil)
+    }
+    
+    private func removeObservers() {
+        InternalNotificationsManager.remove(target: self, name: .CURRENT_USER_UPDATED, object: nil)
+    }
+    
+    @objc func updateCurrentUser() {
+        DispatchQueue.main.async {
+            self.header.updateProfileImage(image: self.viewModel.getProfilePicture())
+        }
     }
 
 }

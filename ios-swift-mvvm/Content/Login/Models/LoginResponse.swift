@@ -22,4 +22,25 @@ struct User: Codable {
     var pictureUrl: String?
     var isAdmin: Bool
     var isLeader: Bool
+    var User_categories: [UserCategory]?
+}
+
+struct UserCategory: Codable {
+    var id: Int
+    var Categories: Category
+}
+
+struct Category: Codable {
+    var id: Int
+    var name: String
+    var description: String
+    var type: String
+    var User_items: UserItems
+}
+
+struct UserItems: Codable {
+    var id: Int
+    var name: String
+    var description: String?
+    var pictureUrl: String?
 }

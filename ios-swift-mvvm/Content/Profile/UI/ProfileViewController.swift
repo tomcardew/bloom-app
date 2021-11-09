@@ -7,12 +7,9 @@
 
 import UIKit
 
-struct ProfileItem {
-    let title: String
-    let view: UIImage
-}
-
 class ProfileViewController: BaseViewController {
+    
+    private let viewModel: ProfileViewModel
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
@@ -42,7 +39,7 @@ class ProfileViewController: BaseViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .poppins(ofSize: 18, weight: .medium)
         label.textColor = .black
-        label.text = "Este mes has pedaleado durante 4 horas y quemado alrededor de 5000 kcal. ¡Sigue así!"
+        label.text = "Este mes has pedaleado durante 4 horas y tu instructor favorito es Tony. ¡Sigue así!"
         label.numberOfLines = 0
         label.setDynamic()
         return label
@@ -67,7 +64,8 @@ class ProfileViewController: BaseViewController {
         return btn
     }()
     
-    override init() {
+    init(viewModel: ProfileViewModel = .init()) {
+        self.viewModel = viewModel
         super.init()
     }
     
@@ -86,30 +84,26 @@ class ProfileViewController: BaseViewController {
         super.viewDidLoad()
         configureView()
         addLayout()
+        bindViewModel()
         configureActions()
+        
+        viewModel.getItems()
     }
     
     // MARK: - Configurations
     private func configureView() {
-        self.view.addSubview(titleLabel)
         self.view.addSubview(scrollView)
         self.scrollView.addSubview(contentView)
+        self.contentView.addSubview(titleLabel)
         self.contentView.addSubview(summaryLabel)
         self.contentView.addSubview(stackView)
-        
-        DataManager.shared.set(object: User(id: "", name: "", lastname: nil, email: "", pictureUrl: "http://bloom-api.com/files/users/db33b9c0-0cf6-462b-82af-e200116826f5142852931_5305882439452219_3641811579963259765_n.jpg", isAdmin: false, isLeader: false), key: .User)
     }
     
     private func addLayout() {
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: self.view.topAnchor, constant: self.getHeaderOffset() + 20),
-            titleLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40),
-            titleLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40)
-        ])
-        NSLayoutConstraint.activate([
             scrollView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             scrollView.widthAnchor.constraint(equalTo: view.widthAnchor),
-            scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor, constant: self.getHeaderOffset() + 20),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         NSLayoutConstraint.activate([
@@ -119,7 +113,12 @@ class ProfileViewController: BaseViewController {
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor)
         ])
         NSLayoutConstraint.activate([
-            summaryLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40)
+        ])
+        NSLayoutConstraint.activate([
+            summaryLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             summaryLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
             summaryLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40)
         ])
@@ -128,36 +127,55 @@ class ProfileViewController: BaseViewController {
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40)
         ])
-        setupSummaryLabel()
-        setupMenuItems()
+    }
+    
+    private func bindViewModel() {
+        viewModel.updateStatusHandler = self.updateState(_:)
+    }
+    
+    // MARK: - Bindings
+    private func updateState(_ state: ProfileViewModel.Status) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            switch state {
+            case .loading:
+                self.showLoader()
+            case .success(let items):
+                self.hideLoader()
+                self.setupMenuItems(items: items)
+                let times = self.viewModel.getTimeAndInstructor()
+                self.setupSummaryLabel(time: times[0] as! Int, instructor: times[1] as! String)
+                if times[0] as! Int == 0 {
+                    self.summaryLabel.isHidden = true
+                    self.summaryLabel.heightAnchor.constraint(equalToConstant: 0).isActive = true
+                }
+            case .error(let error):
+                self.hideLoader()
+                self.showAlert(title: "Error", description: error)
+            default:
+                print(self.viewModel.currentState)
+            }
+        }
     }
     
     private func configureActions() {
         logoutButton.onClick(target: self, selector: #selector(logout))
     }
     
-    private func setupMenuItems() {
-        let user: User = try! DataManager.shared.get(key: .User)
-        let items: [ProfileItem] = [
-            ProfileItem(title: "Mis clases", view: UIImage(named: "MisClases")!),
-            ProfileItem(title: "Mi grupo", view: UIImage(named: "MiGrupo")!),
-            ProfileItem(title: "Mis compras", view: UIImage(named: "MisCompras")!),
-            ProfileItem(title: "Configuración", view: UIImage(named: "Configuracion")!)
-        ]
+    private func setupMenuItems(items: [ProfileViewModel.ProfileItem]) {
         for item in items {
             let menu = ProfileMenuItem()
             menu.translatesAutoresizingMaskIntoConstraints = false
             menu.clipsToBounds = true
             menu.layer.cornerRadius = 10
-            menu.configure(text: item.title, image: item.view)
-            if (item.title != "Mi grupo" || (item.title == "Mi grupo" && user.isLeader)) {
-                self.stackView.addArrangedSubview(menu)
-                NSLayoutConstraint.activate([
-                    menu.heightAnchor.constraint(equalToConstant: 120),
-                    menu.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
-                    menu.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
-                ])
-            }
+            let image = UIImage(named: item.viewImageName)!
+            menu.configure(text: item.title, image: image)
+            self.stackView.addArrangedSubview(menu)
+            NSLayoutConstraint.activate([
+                menu.heightAnchor.constraint(equalToConstant: 120),
+                menu.leadingAnchor.constraint(equalTo: stackView.leadingAnchor),
+                menu.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
+            ])
         }
         self.stackView.addArrangedSubview(logoutButton)
         NSLayoutConstraint.activate([
@@ -170,27 +188,27 @@ class ProfileViewController: BaseViewController {
         ])
     }
     
-    private func setupSummaryLabel(time: Int = 4, calories: Int = 0) {
-        let timeLength = "\(time)".count
-        let caloriesLength = "\(calories)".count
-        let str = "Este mes has pedaleado durante \(time) horas y quemado alrededor de \(calories) kcal. ¡Sigue así!"
+    private func setupSummaryLabel(time: Int = 240, instructor: String = "") {
+        let hours = time / 60
+        let timeLength = "\(hours)".count
+        let instructorLength = instructor.count
+        let str = "Este mes has pedaleado durante \(hours) horas y tu instructor más visitado es \(instructor). ¡Sigue así!"
         let mutableString = NSMutableAttributedString(string: str, attributes: [.font: UIFont.poppins(ofSize: 18, weight: .medium)])
         mutableString.addAttributes([.font: UIFont.poppins(ofSize: 18, weight: .bold)], range: NSRange(location: 31, length: timeLength + 6))
-        mutableString.addAttributes([.font: UIFont.poppins(ofSize: 18, weight: .bold)], range: NSRange(location: 31 + timeLength + 6 + 24, length: caloriesLength + 6))
+        mutableString.addAttributes([.font: UIFont.poppins(ofSize: 18, weight: .bold)], range: NSRange(location: 31 + timeLength + 6 + 33, length: instructorLength))
         self.summaryLabel.attributedText = mutableString
     }
     
     private func getScrollSize(itemCount: Int) -> CGFloat {
-        // CGFloat((120 * items.count) + (20 * (items.count - 1)) + summaryLabel.bounds.size.height + 40)
         let itemSize = CGFloat((120 * itemCount) + (20 * (itemCount - 1)))
-        let summarySize = CGFloat(82 + 80 + 60)
+        let summarySize = CGFloat(82 + 80 + 60 + 40)
         return CGFloat(itemSize + summarySize)
     }
     
     @objc func logout() {
         KeyManager.set(key: .Token, value: "")
-        DataManager.shared.set(object: User(id: "", name: "", lastname: nil, email: "", pictureUrl: nil, isAdmin: false, isLeader: false), key: .User)
-        self.navigationController?.popToRootViewController(animated: true)
+        DataManager.shared.remove(key: .User)
+        self.navigationController?.popViewController(animated: true)
     }
     
 }

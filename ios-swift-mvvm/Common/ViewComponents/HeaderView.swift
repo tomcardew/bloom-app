@@ -18,12 +18,6 @@ class HeaderView: UIView {
     
     var delegate: HeaderDelegate?
     
-    var profilePictureUrl: String? {
-        didSet {
-            setProfileImage()
-        }
-    }
-    
     // MARK: Properties
     private lazy var logoImage: UIImageView = {
         let image = UIImageView()
@@ -52,11 +46,10 @@ class HeaderView: UIView {
         image.translatesAutoresizingMaskIntoConstraints = false
         image.layer.cornerRadius = 15
         image.clipsToBounds = true
-        image.backgroundColor = .red
         image.isHidden = true
         return image
     }()
-
+    
     // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -72,12 +65,6 @@ class HeaderView: UIView {
         setupViews()
         setupLayout()
         setupActions()
-    }
-    
-    // MARK: - Configuration
-    public func configure(with user: User) {
-        self.profilePictureUrl = user.pictureUrl
-        DataManager.shared.attach(self)
     }
     
     private func setupViews() {
@@ -133,32 +120,21 @@ class HeaderView: UIView {
         self.delegate?.didPressHome()
     }
     
-    private func setProfileImage() {
-        DispatchQueue.main.async {
-            self.userButton.isHidden = true
+    func updateProfileImage(image: String?) {
+        self.userButton.isHidden = true
+        self.userImageButton.isHidden = true
+        if let image = image, let url = URL(string: image.replacingOccurrences(of: "http://", with: "https://")) {
+            Nuke.loadImage(with: url, into: self.userImageButton)
             self.userImageButton.isHidden = false
-            if let pic = self.profilePictureUrl, let url = URL(string: self.profilePictureUrl!.replacingOccurrences(of: "http://", with: "https://")) {
-                Nuke.loadImage(with: url, into: self.userImageButton)
-            } else {
-                self.userButton.isHidden = false
-                self.userImageButton.isHidden = true
-            }
+        } else {
+            self.userButton.isHidden = false
         }
     }
-
+    
 }
 
 private extension HeaderView {
     private enum DesignConstants {
         
     }
-}
-
-extension HeaderView: Observer {
-    
-    func update(subscriber: Subscriber) {
-        let user: User = try! DataManager.shared.get(key: .User)
-        self.profilePictureUrl = user.pictureUrl
-    }
-
 }

@@ -65,6 +65,8 @@ class Textfield: UIView {
         return image
     }()
     
+    private var anchorTrailing: NSLayoutConstraint?
+    
     // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -100,11 +102,12 @@ class Textfield: UIView {
             placeholderView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 20),
             placeholderView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20)
         ])
+        self.anchorTrailing = textfield.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20)
+        self.anchorTrailing!.isActive = true
         NSLayoutConstraint.activate([
             textfield.topAnchor.constraint(equalTo: self.topAnchor),
             textfield.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            textfield.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 20),
-            textfield.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20)
+            textfield.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 20)
         ])
         NSLayoutConstraint.activate([
             iconImage.centerYAnchor.constraint(equalTo: self.centerYAnchor),
@@ -145,11 +148,11 @@ class Textfield: UIView {
         if (active) {
             self.textfield.isSecureTextEntry = true
             self.iconImage.isHidden = false
-            textfield.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20).isActive = false
-            NSLayoutConstraint.activate([
-                textfield.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -64)
-            ])
-            textfield.layoutIfNeeded()
+            anchorTrailing?.constant = -64
+//            NSLayoutConstraint.activate([
+//                textfield.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -64)
+//            ])
+            textfield.setNeedsLayout()
         } else {
             self.textfield.isSecureTextEntry = false
             self.iconImage.isHidden = true

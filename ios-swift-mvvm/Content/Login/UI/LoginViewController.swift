@@ -76,11 +76,26 @@ class LoginViewController: BaseViewController {
         return btn
     }()
     
-    private lazy var closeButton: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: "Close"), for: .normal)
-        return button
+    private lazy var closeButton: BigButton = {
+        let btn = BigButton()
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.title = "Cancelar"
+        btn.textColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.75)
+        btn.bgColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1.00)
+        return btn
+    }()
+    
+    private lazy var scrollView: UIScrollView = {
+        let view = UIScrollView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.alwaysBounceVertical = true
+        return view
+    }()
+    
+    private lazy var contentView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
     
     init(viewModel: LoginViewModel = .init()) {
@@ -110,62 +125,77 @@ class LoginViewController: BaseViewController {
     
     // MARK: - Configurations
     private func configureView() {
-        self.view.addSubview(titleLabel)
-        self.view.addSubview(descLabel)
-        self.view.addSubview(emailTextField)
-        self.view.addSubview(passTextField)
-        self.view.addSubview(loginButton)
-        self.view.addSubview(fbButton)
-        self.view.addSubview(signupButton)
-        self.view.addSubview(closeButton)
+        self.view.addSubview(scrollView)
+        self.scrollView.addSubview(contentView)
+        self.contentView.addSubview(titleLabel)
+        self.contentView.addSubview(descLabel)
+        self.contentView.addSubview(emailTextField)
+        self.contentView.addSubview(passTextField)
+        self.contentView.addSubview(loginButton)
+        self.contentView.addSubview(fbButton)
+        self.contentView.addSubview(signupButton)
+        self.contentView.addSubview(closeButton)
     }
     
     private func addLayout() {
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 40),
-            titleLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40),
-            titleLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40)
+            scrollView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            scrollView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        NSLayoutConstraint.activate([
+            contentView.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 700)
+        ])
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 40),
+            titleLabel.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 40),
+            titleLabel.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -40)
         ])
         NSLayoutConstraint.activate([
             descLabel.topAnchor.constraint(equalTo: self.titleLabel.bottomAnchor, constant: 20),
-            descLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40),
-            descLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40)
+            descLabel.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 40),
+            descLabel.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -40)
         ])
         NSLayoutConstraint.activate([
             emailTextField.topAnchor.constraint(equalTo: self.descLabel.bottomAnchor, constant: 40),
-            emailTextField.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40),
-            emailTextField.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40),
+            emailTextField.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 40),
+            emailTextField.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -40),
             emailTextField.heightAnchor.constraint(equalToConstant: 52)
         ])
         NSLayoutConstraint.activate([
             passTextField.topAnchor.constraint(equalTo: self.emailTextField.bottomAnchor, constant: 20),
-            passTextField.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40),
-            passTextField.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40),
+            passTextField.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 40),
+            passTextField.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -40),
             passTextField.heightAnchor.constraint(equalToConstant: 52)
         ])
         NSLayoutConstraint.activate([
             loginButton.topAnchor.constraint(equalTo: self.passTextField.bottomAnchor, constant: 30),
-            loginButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40),
-            loginButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40),
+            loginButton.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 40),
+            loginButton.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -40),
             loginButton.heightAnchor.constraint(equalToConstant: 52)
         ])
         NSLayoutConstraint.activate([
             fbButton.topAnchor.constraint(equalTo: self.loginButton.bottomAnchor, constant: 20),
-            fbButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40),
-            fbButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40),
+            fbButton.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 40),
+            fbButton.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -40),
             fbButton.heightAnchor.constraint(equalToConstant: 52)
         ])
         NSLayoutConstraint.activate([
-            signupButton.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -40),
-            signupButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40),
-            signupButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40),
-            signupButton.heightAnchor.constraint(equalToConstant: 52)
+            closeButton.heightAnchor.constraint(equalToConstant: 40),
+            closeButton.bottomAnchor.constraint(equalTo: self.contentView.safeAreaLayoutGuide.bottomAnchor, constant: 0),
+            closeButton.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 40),
+            closeButton.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -40)
         ])
         NSLayoutConstraint.activate([
-            closeButton.widthAnchor.constraint(equalToConstant: 30),
-            closeButton.heightAnchor.constraint(equalToConstant: 30),
-            closeButton.centerYAnchor.constraint(equalTo: self.titleLabel.centerYAnchor),
-            closeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40)
+            signupButton.heightAnchor.constraint(equalToConstant: 52),
+            signupButton.bottomAnchor.constraint(equalTo: self.closeButton.topAnchor, constant: -20),
+            signupButton.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 40),
+            signupButton.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -40)
         ])
     }
     
@@ -180,9 +210,8 @@ class LoginViewController: BaseViewController {
             switch state {
             case .loading:
                 self.showLoader()
-            case .loggedIn(let token):
+            case .loggedIn:
                 self.hideLoader()
-                KeyManager.set(key: .Token, value: token)
                 self.dismiss(animated: true, completion: nil)
             case .failed(let error):
                 self.hideLoader()
@@ -195,7 +224,7 @@ class LoginViewController: BaseViewController {
     
     private func configureActions() {
         loginButton.onClick(target: self, selector: #selector(didTapLogin))
-        closeButton.addTarget(self, action: #selector(closeSelf), for: .touchUpInside)
+        closeButton.onClick(target: self, selector: #selector(closeSelf))
     }
     
     @objc func didTapLogin() {

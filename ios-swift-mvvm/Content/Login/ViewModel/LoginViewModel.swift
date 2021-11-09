@@ -13,7 +13,7 @@ final class LoginViewModel {
     enum Status {
         case initial
         case loading
-        case loggedIn(String)
+        case loggedIn
         case failed(String)
     }
     
@@ -50,7 +50,8 @@ final class LoginViewModel {
             switch result {
             case .success(let data):
                 DataManager.shared.set(object: data.user!, key: .User)
-                self.currentState = .loggedIn(data.token!)
+                KeyManager.set(key: .Token, value: data.token!)
+                self.currentState = .loggedIn
             case .failure(let error):
                 self.currentState = .failed(error.localizedDescription)
             }
