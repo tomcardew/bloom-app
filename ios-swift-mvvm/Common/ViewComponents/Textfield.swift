@@ -160,7 +160,7 @@ class Textfield: UIView {
     }
     
     public func getValue() -> String? {
-        return self.textfield.text
+        return self.textfield.text?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
 }

@@ -50,7 +50,7 @@ final class LoginViewModel {
             switch result {
             case .success(let data):
                 DataManager.shared.set(object: data.user!, key: .User)
-                KeyManager.set(key: .Token, value: data.token!)
+                DataManager.shared.setString(string: data.token!, key: .Token)
                 self.currentState = .loggedIn
             case .failure(let error):
                 self.currentState = .failed(error.localizedDescription)

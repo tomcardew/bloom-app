@@ -17,6 +17,7 @@ protocol HeaderDelegate: AnyObject {
 class HeaderView: UIView {
     
     var delegate: HeaderDelegate?
+    private var loading = false
     
     // MARK: Properties
     private lazy var logoImage: UIImageView = {
@@ -38,6 +39,7 @@ class HeaderView: UIView {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "User"), for: .normal)
+        button.isHidden = false
         return button
     }()
     
@@ -46,7 +48,7 @@ class HeaderView: UIView {
         image.translatesAutoresizingMaskIntoConstraints = false
         image.layer.cornerRadius = 15
         image.clipsToBounds = true
-        image.isHidden = true
+        image.isHidden = false
         return image
     }()
     
@@ -121,13 +123,27 @@ class HeaderView: UIView {
     }
     
     func updateProfileImage(image: String?) {
-        self.userButton.isHidden = true
-        self.userImageButton.isHidden = true
-        if let image = image, let url = URL(string: image.replacingOccurrences(of: "http://", with: "https://")) {
-            Nuke.loadImage(with: url, into: self.userImageButton)
+        DispatchQueue.main.async {
+            guard let image = image else {
+                self.userImageButton.image = nil
+                self.userImageButton.isHidden = true
+                self.userButton.isHidden = false
+                return
+            }
             self.userImageButton.isHidden = false
-        } else {
-            self.userButton.isHidden = false
+            self.userButton.isHidden = true
+            if !self.loading {
+                let request = ImageRequest(
+                    url: URL(string: image.replacingOccurrences(of: "http://", with: "https://")),
+                    processors: [.resize(size: self.userImageButton.bounds.size)],
+                    priority: .high,
+                    options: [.disableMemoryCache, .disableDiskCache]
+                )
+                self.loading = true
+                Nuke.loadImage(with: request, into: self.userImageButton, completion: { result in
+                    self.loading = false
+                })
+            }
         }
     }
     

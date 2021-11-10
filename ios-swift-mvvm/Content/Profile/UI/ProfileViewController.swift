@@ -64,6 +64,13 @@ class ProfileViewController: BaseViewController {
         return btn
     }()
     
+    private lazy var closeButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(named: "Close"), for: .normal)
+        return button
+    }()
+    
     init(viewModel: ProfileViewModel = .init()) {
         self.viewModel = viewModel
         super.init()
@@ -76,7 +83,8 @@ class ProfileViewController: BaseViewController {
     // MARK: - View Controller Life Cycle
     override func loadView() {
         super.loadView()
-        self.view.backgroundColor = .white
+        self.view.backgroundColor = .clear
+        self.view.setBlur(style: .systemChromeMaterialLight)
         self.navigationItem.setHidesBackButton(true, animated: false)
     }
     
@@ -94,6 +102,7 @@ class ProfileViewController: BaseViewController {
     private func configureView() {
         self.view.addSubview(scrollView)
         self.scrollView.addSubview(contentView)
+        self.contentView.addSubview(closeButton)
         self.contentView.addSubview(titleLabel)
         self.contentView.addSubview(summaryLabel)
         self.contentView.addSubview(stackView)
@@ -103,7 +112,7 @@ class ProfileViewController: BaseViewController {
         NSLayoutConstraint.activate([
             scrollView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             scrollView.widthAnchor.constraint(equalTo: view.widthAnchor),
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor, constant: self.getHeaderOffset() + 20),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         NSLayoutConstraint.activate([
@@ -116,6 +125,12 @@ class ProfileViewController: BaseViewController {
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40)
+        ])
+        NSLayoutConstraint.activate([
+            closeButton.widthAnchor.constraint(equalToConstant: 30),
+            closeButton.heightAnchor.constraint(equalToConstant: 30),
+            closeButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40)
         ])
         NSLayoutConstraint.activate([
             summaryLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
@@ -140,18 +155,21 @@ class ProfileViewController: BaseViewController {
             switch state {
             case .loading:
                 self.showLoader()
+            case .updating:
+                self.hideLoader()
             case .success(let items):
                 self.hideLoader()
                 self.setupMenuItems(items: items)
                 let times = self.viewModel.getTimeAndInstructor()
                 self.setupSummaryLabel(time: times[0] as! Int, instructor: times[1] as! String)
                 if times[0] as! Int == 0 {
-                    self.summaryLabel.isHidden = true
-                    self.summaryLabel.heightAnchor.constraint(equalToConstant: 0).isActive = true
+                    self.summaryLabel.text = "¡Aún no has pedaleado! ¿Qué te detiene?"
                 }
             case .error(let error):
                 self.hideLoader()
-                self.showAlert(title: "Error", description: error)
+                self.showAlert(title: "Error", description: error, onClose: {
+                    self.logout()
+                })
             default:
                 print(self.viewModel.currentState)
             }
@@ -160,6 +178,7 @@ class ProfileViewController: BaseViewController {
     
     private func configureActions() {
         logoutButton.onClick(target: self, selector: #selector(logout))
+        closeButton.onClick(target: self, selector: #selector(closeSelf))
     }
     
     private func setupMenuItems(items: [ProfileViewModel.ProfileItem]) {
@@ -206,9 +225,12 @@ class ProfileViewController: BaseViewController {
     }
     
     @objc func logout() {
-        KeyManager.set(key: .Token, value: "")
-        DataManager.shared.remove(key: .User)
-        self.navigationController?.popViewController(animated: true)
+        DataManager.shared.deleteAll()
+        self.dismiss(animated: true)
+    }
+    
+    @objc func closeSelf() {
+        self.dismiss(animated: true, completion: nil)
     }
     
 }

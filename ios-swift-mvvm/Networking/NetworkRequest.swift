@@ -36,7 +36,7 @@ struct NetworkRequest {
             }
         }
         
-        let apikey: String? = KeyManager.get(key: .Token)
+        let apikey: String? = DataManager.shared.getString(key: .Token)
         if apikey != nil && useAuthorization {
             self.request.setValue(apikey, forHTTPHeaderField: "Authorization")
         }

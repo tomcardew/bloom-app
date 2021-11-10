@@ -14,19 +14,8 @@ final class BaseViewModel {
     
     /// Public methods
     func getProfilePicture() -> String? {
-        do {
-            let user: User? = try DataManager.shared.get(key: .User)
-            guard let user = user, let picture = user.pictureUrl else {
-                throw ErrorResponse(code: 0, message: "User or profile picture not found")
-            }
-            if picture.isEmpty {
-                return nil
-            }
-            return picture
-        } catch {
-            print(error.localizedDescription)
-        }
-        return nil
+        let user: User? = DataManager.shared.get(key: .User)
+        return user?.pictureUrl
     }
     
 }

@@ -12,9 +12,14 @@ final class DataManager {
     
     static let shared: DataManager = DataManager()
     
-    enum DataKeys: String {
+    enum DataKeys: String, CaseIterable {
         case User
+        case Token
         case Other
+    }
+    
+    public func setString(string: String, key: DataKeys) {
+        Cache.shareInstance.set(object: string as NSCoding, forKey: key.rawValue)
     }
     
     public func set<T>(object: T?, key: DataKeys) {
@@ -31,12 +36,29 @@ final class DataManager {
         notify(key: key)
     }
     
-    public func get<T: Decodable>(key: DataKeys) throws -> T? {
+    public func get<T: Decodable>(key: DataKeys) -> T? {
         let data = Cache.shareInstance.object(forKey: key.rawValue) as? String
         if let data = data {
-            return try JSONDecoder().decode(T.self, from: data.data(using: .utf8)!)
+            do {
+                return try JSONDecoder().decode(T.self, from: data.data(using: .utf8)!)
+            } catch {
+                print(error)
+            }
         }
         return nil
+    }
+    
+    public func getString(key: DataKeys) -> String? {
+        let data = Cache.shareInstance.object(forKey: key.rawValue) as? String
+        guard let data = data else { return nil }
+        return data
+    }
+    
+    public func deleteAll() {
+        Cache.shareInstance.removeAllObjects()
+        for key in DataKeys.allCases {
+            notify(key: key)
+        }
     }
     
     private func notify(key: DataKeys) {

@@ -13,6 +13,7 @@ final class ProfileViewModel {
     enum Status {
         case initial
         case loading
+        case updating
         case error(String)
         case success([ProfileItem])
     }
@@ -30,7 +31,7 @@ final class ProfileViewModel {
         ProfileItem(title: "Mis compras", viewImageName: "MisCompras"),
         ProfileItem(title: "Configuración", viewImageName: "Configuracion")
     ]
-    private var user: User? = nil
+    private var user: User?
     private var time: Int = 0
     private var instructor: String = ""
     
@@ -50,38 +51,33 @@ final class ProfileViewModel {
     /// Public methods
     func getItems() {
         switch currentState {
-        case .loading:
+        case .initial:
+            currentState = .loading
+        case .loading, .updating:
             return
+        case .success:
+            currentState = .updating
         default:
             break
         }
-        
-        currentState = .loading
-        
-        let user: User? = try? DataManager.shared.get(key: .User)
-        if let user = user, let cats = user.User_categories {
-            print("ASASA")
-        } else {
-            print("ESESE")
-            service.getMe(completionHandler: { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success(let response):
-                    DataManager.shared.remove(key: .User)
-                    DataManager.shared.set(object: response.data, key: .User)
-                    self.user = response.data!.profile
-                    self.time =  response.data!.minutesDone
-                    self.instructor = response.data!.favorite
-                    var items = self.items
-                    if self.user!.isLeader {
-                        items.remove(at: 1)
-                    }
-                    self.currentState = .success(items)
-                case .failure(let error):
-                    self.currentState = .error(error.localizedDescription)
+        self.user = DataManager.shared.get(key: .User)
+        service.getMe(completionHandler: { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let response):
+                DataManager.shared.set(object: response.data!.profile, key: .User)
+                self.user = response.data!.profile
+                self.time =  response.data!.minutesDone
+                self.instructor = response.data!.favorite
+                var items = self.items
+                if !self.user!.isLeader {
+                    items.remove(at: 1)
                 }
-            })
-        }
+                self.currentState = .success(items)
+            case .failure(let error):
+                self.currentState = .error(error.localizedDescription)
+            }
+        })
     }
     
     func getTimeAndInstructor() -> [Any] {

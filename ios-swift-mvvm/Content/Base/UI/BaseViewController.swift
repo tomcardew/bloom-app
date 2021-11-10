@@ -89,10 +89,10 @@ class BaseViewController: UIViewController {
         }
         self.navigationItem.setHidesBackButton(true, animated: false)
         addLayout()
-//        let picture = viewModel.getProfilePicture()
-//        if let picture = picture {
-//            self.header.updateProfileImage(image: picture)
-//        }
+        let picture = viewModel.getProfilePicture()
+        if let picture = picture {
+            self.header.updateProfileImage(image: picture)
+        }
     }
     
     // MARK: - Configurations
@@ -125,6 +125,10 @@ class BaseViewController: UIViewController {
     
     @objc func updateCurrentUser() {
         DispatchQueue.main.async {
+            let user: User? = DataManager.shared.get(key: .User)
+            if user == nil {
+                self.navigationController?.popToRootViewController(animated: false)
+            }
             self.header.updateProfileImage(image: self.viewModel.getProfilePicture())
         }
     }
@@ -163,10 +167,12 @@ extension BaseViewController: HeaderDelegate {
     }
     
     func didPressUser() {
-        self.navigationController?.popViewController(animated: true)
-        let token: String? = KeyManager.get(key: .Token)
+        let token: String? = DataManager.shared.getString(key: .Token)
         if token != nil && !token!.isEmpty {
-            self.navigationController?.pushViewController(ProfileViewController(), animated: true)
+            let view = ProfileViewController()
+            view.modalPresentationStyle = .overFullScreen
+            view.modalTransitionStyle = .crossDissolve
+            self.present(view, animated: true, completion: nil)
         } else {
             let view = LoginViewController()
             view.modalPresentationStyle = .overFullScreen
